@@ -1,0 +1,227 @@
+<html>
+<head>
+    <title>Photo Gallery</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border: 3px solid #007bff;
+            border-radius: 10px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        #sendBtn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 25px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #result {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .card {
+            width: 220px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .card:hover {
+            transform: scale(1.03);
+        }
+
+        .card img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .card h3 {
+            color: #007bff;
+        }
+         #pagination {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        #pagination button {
+            padding: 8px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        #pagination button:hover {
+            background: #0056b3;
+        }
+
+        #searchBox {
+            width: 250px;
+            padding: 8px;
+            font-size: 17px;
+            margin-bottom: 10px;
+            border: 1px solid gray;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 30px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>PHOTO GALLERY</h2>
+
+    <center>
+        <input type="text" id="searchBox" placeholder="Search photos...">
+    </center>
+
+    <button id="sendBtn" onclick="getData()">Load Photos</button>
+    <center>
+        <a href="index.html">Go to users post</a>
+    </center>
+
+    <div id="result"></div>
+
+    <div id="pagination"></div>
+
+</div>
+
+<script>
+
+let photos = [];
+
+let filteredPhotos = [];
+
+let photosPerPage = 10;
+
+function getData() {
+
+    fetch("http://localhost:5000/api/photos")
+    .then(response => response.json())
+    .then(data => {
+
+        photos = data;
+        filteredPhotos = data;
+
+        showPage(1);
+        createPagination();
+
+    })
+    .catch(error => console.log(error));
+
+}
+
+
+function showPage(page) {
+
+    let start = (page - 1) * photosPerPage;
+    let end = start + photosPerPage;
+
+    let output = "";
+
+    for(let i = start; i < end && i < filteredPhotos.length; i++) {
+
+        output += `
+
+        <div class="card">
+
+            <h3>Photo ${filteredPhotos[i].id}</h3>
+
+            <img src="${filteredPhotos[i].download_url}">
+
+            <p><b>Author:</b> ${filteredPhotos[i].author}</p>
+
+        </div>
+
+        `;
+    }
+
+    document.getElementById("result").innerHTML = output;
+
+}
+
+
+function createPagination() {
+
+    let totalPages = Math.ceil(filteredPhotos.length / photosPerPage);
+
+    let buttons = "";
+
+    for(let i = 1; i <= totalPages; i++) {
+
+        buttons += `<button onclick="showPage(${i})">${i}</button>`;
+
+    }
+
+    document.getElementById("pagination").innerHTML = buttons;
+
+}
+
+document.getElementById("searchBox").addEventListener("keyup", function(){
+
+
+    let searchText = this.value.toLowerCase();
+
+
+
+    filteredPhotos = photos.filter(photo =>
+
+        photo.author.toLowerCase().includes(searchText)
+
+    );
+
+
+
+    showPage(1);
+
+    createPagination();
+
+
+});
+
+</script>
+
+</body>
+</html>
